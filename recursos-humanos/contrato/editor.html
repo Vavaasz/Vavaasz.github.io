@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contrato RH</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const ASSET_BUST_FALLBACK = "20260428-contrato-lock";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || ASSET_BUST_FALLBACK;
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) {
+          url.searchParams.set("v", token);
+        }
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/recursos-humanos/contrato/styles.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar contract-topbar">
+    <div>
+      <p id="eyebrowLabel" class="eyebrow">Recursos Humanos</p>
+      <h1 id="pageTitle">Contrato RH</h1>
+      <p id="pageSubtitle" class="muted">Carregando contrato...</p>
+    </div>
+    <div class="topbar-side">
+      <a id="backToListLink" class="button secondary hidden" href="/recursos-humanos/contrato/">Lista de contratos</a>
+      <a id="backToRhLink" class="button secondary hidden" href="/recursos-humanos/">Painel RH</a>
+      <div id="saveStatus" class="save-inline">Preparando contrato...</div>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <button id="exportPdfBtn" class="button secondary" type="button">Exportar PDF</button>
+      <button id="archiveToggleBtn" class="button secondary hidden" type="button">Arquivar</button>
+      <button id="saveBtn" class="button" type="button">Enviar</button>
+    </div>
+  </header>
+
+  <main class="shell contract-shell">
+    <section class="preview-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Preview do contrato</h2>
+          <p class="muted">O colaborador preenche apenas vale-transporte e assinatura. O restante do contrato continua igual ao PDF original.</p>
+        </div>
+      </div>
+      <div id="previewPages" class="page-stack"></div>
+    </section>
+
+    <aside class="editor-sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Vale-transporte</h2>
+            <p class="muted">Mostre apenas o que o colaborador precisa informar: opcao, ida, volta, tarifa, cartao e conducoes por dia.</p>
+          </div>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Opcao
+            <select data-bind="transport.choice">
+              <option value="">Selecione</option>
+              <option value="accept">Utiliza vale-transporte</option>
+              <option value="decline">Nao utiliza vale-transporte</option>
+            </select>
+          </label>
+          <label class="transport-accept-only hidden">Conducoes por dia
+            <input data-bind="transport.dailyTrips" inputmode="numeric" placeholder="2" />
+          </label>
+          <label class="transport-accept-only hidden">Tipo de cartao
+            <select data-bind="transport.cardType">
+              <option value="cartaoFlash">Cart&atilde;o Flash</option>
+            </select>
+          </label>
+          <label id="transportCardOtherRow" class="transport-accept-only hidden">Descricao do cartao
+            <input data-bind="transport.cardOther" placeholder="Somente se marcar Outros" />
+          </label>
+        </div>
+        <p id="transportOptionHint" class="muted"></p>
+
+        <div id="transportDetails" class="transport-columns hidden">
+          <div class="transport-column">
+            <h3>Ida</h3>
+            <div class="transport-option-list">
+              <label class="transport-option"><input data-bind="transport.ida.integrationMetro.selected" type="checkbox" /><span>Integracao onibus/metro</span><input data-bind="transport.ida.integrationMetro.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.ida.integrationTrain.selected" type="checkbox" /><span>Integracao onibus/trem</span><input data-bind="transport.ida.integrationTrain.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.ida.municipalBus.selected" type="checkbox" /><span>Onibus municipal</span><input data-bind="transport.ida.municipalBus.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.ida.intercityBus.selected" type="checkbox" /><span>Onibus intermunicipal</span><input data-bind="transport.ida.intercityBus.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.ida.metroTrain.selected" type="checkbox" /><span>Metro ou trem</span><input data-bind="transport.ida.metroTrain.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.ida.other.selected" type="checkbox" /><span>Outros</span><input data-bind="transport.ida.other.fare" placeholder="Tarifa" /></label>
+            </div>
+          </div>
+
+          <div class="transport-column">
+            <h3>Volta</h3>
+            <div class="transport-option-list">
+              <label class="transport-option"><input data-bind="transport.volta.integrationMetro.selected" type="checkbox" /><span>Integracao onibus/metro</span><input data-bind="transport.volta.integrationMetro.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.volta.integrationTrain.selected" type="checkbox" /><span>Integracao onibus/trem</span><input data-bind="transport.volta.integrationTrain.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.volta.municipalBus.selected" type="checkbox" /><span>Onibus municipal</span><input data-bind="transport.volta.municipalBus.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.volta.intercityBus.selected" type="checkbox" /><span>Onibus intermunicipal</span><input data-bind="transport.volta.intercityBus.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.volta.metroTrain.selected" type="checkbox" /><span>Metro ou trem</span><input data-bind="transport.volta.metroTrain.fare" placeholder="Tarifa" /></label>
+              <label class="transport-option"><input data-bind="transport.volta.other.selected" type="checkbox" /><span>Outros</span><input data-bind="transport.volta.other.fare" placeholder="Tarifa" /></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Assinatura</h2>
+            <p class="muted">A assinatura fica fixa no contrato e pode ser editada novamente quando necessario.</p>
+          </div>
+        </div>
+        <div id="ownerSignatureAlert" class="callout warning hidden">Cadastre primeiro a assinatura da direcao no Admin para liberar exportacao e envio.</div>
+        <div class="signature-card">
+          <div class="signature-fixed-preview">
+            <img id="employeeSignaturePreview" alt="Assinatura do colaborador" class="hidden" />
+            <div id="employeeSignatureEmpty" class="signature-empty">Nenhuma assinatura salva.</div>
+          </div>
+          <div class="signature-actions">
+            <button id="employeeSignatureEditBtn" class="button secondary small" type="button">Editar</button>
+            <span id="employeeSignatureMeta" class="muted"></span>
+          </div>
+        </div>
+        <div id="employeeSignatureEditor" class="signature-editor hidden">
+          <canvas id="employeeSignatureCanvas" class="signature-canvas"></canvas>
+          <div class="signature-actions">
+            <button id="employeeSignatureClearBtn" class="button secondary small" type="button">Limpar</button>
+            <button id="employeeSignatureCancelBtn" class="button secondary small" type="button">Cancelar</button>
+            <button id="employeeSignatureSaveBtn" class="button small" type="button">Salvar assinatura</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/signature-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/gate-config.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/contrato/samples.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/contrato/template.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/contrato/pdf.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/contrato/editor.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ficha de Admiss&atilde;o</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const ASSET_BUST_FALLBACK = "20260326-2145";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || ASSET_BUST_FALLBACK;
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) {
+          url.searchParams.set("v", token);
+        }
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/recursos-humanos/admissao/styles.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header id="appHeader" class="topbar editor-topbar">
+    <div>
+      <p id="eyebrowLabel" class="eyebrow">Recursos Humanos</p>
+      <h1 id="pageTitle">Ficha de Admiss&atilde;o</h1>
+      <p id="pageSubtitle" class="muted">Cadastro formal para admiss&atilde;o de funcion&aacute;rios.</p>
+    </div>
+    <div class="topbar-side">
+      <a id="backToListLink" class="button secondary hidden" href="/recursos-humanos/admissao/">Voltar para lista</a>
+      <a id="backToRhLink" class="button secondary hidden" href="/recursos-humanos/">Painel RH</a>
+      <div id="saveStatus" class="save-inline">Alteracoes salvas.</div>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <button id="exportPdfBtn" class="button secondary hidden" type="button">Exportar PDF</button>
+      <button id="deleteBtn" class="button warning hidden" type="button">Arquivar ficha</button>
+      <button id="saveBtn" class="button" type="button">Enviar</button>
+    </div>
+  </header>
+
+  <main class="shell shell-editor">
+    <form id="admissionForm" class="editor-layout" novalidate>
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Dados para admissao</h2>
+            <p class="muted">Campos cadastrais para admissao do colaborador.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Nome completo <span class="required-mark">*</span>
+            <input data-bind="personal.fullName" placeholder="Nome completo" />
+          </label>
+          <label>Nome social
+            <input data-bind="personal.socialName" placeholder="Somente se aplicavel" />
+          </label>
+          <label>Telefone <span class="required-mark">*</span>
+            <input data-bind="personal.phone" placeholder="(00) 00000-0000" />
+          </label>
+          <label>E-mail <span class="required-mark">*</span>
+            <input data-bind="personal.email" type="email" placeholder="email@exemplo.com" />
+          </label>
+          <label>Nome da mae <span class="required-mark">*</span>
+            <input data-bind="personal.motherName" />
+          </label>
+          <label>Nome do pai
+            <input data-bind="personal.fatherName" />
+          </label>
+          <label>Data de nascimento <span class="required-mark">*</span>
+            <input data-bind="personal.birthDate" type="date" />
+          </label>
+          <label>Cor / Raca
+            <input data-bind="personal.raceColor" />
+          </label>
+          <label>Local de nascimento
+            <input data-bind="personal.birthPlace" />
+          </label>
+          <label>UF nascimento
+            <input data-bind="personal.birthState" maxlength="2" />
+          </label>
+          <label>Deficiente fisico
+            <select data-bind="personal.hasDisability">
+              <option value="">Selecione</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Nao</option>
+            </select>
+          </label>
+          <label>Deficiencia informada
+            <input data-bind="personal.disabilityDescription" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Endereco residencial</h2>
+            <p class="muted">Endereco principal informado pelo funcionario.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Endereco <span class="required-mark">*</span>
+            <input data-bind="address.street" />
+          </label>
+          <label>Numero <span class="required-mark">*</span>
+            <input data-bind="address.number" />
+          </label>
+          <label>UF
+            <input data-bind="address.state" maxlength="2" />
+          </label>
+          <label>Complemento
+            <input data-bind="address.complement" />
+          </label>
+          <label>Tipo
+            <select data-bind="address.residenceType">
+              <option value="">Selecione</option>
+              <option value="casa">Casa</option>
+              <option value="apartamento">Apartamento</option>
+            </select>
+          </label>
+          <label>Bloco
+            <input data-bind="address.block" />
+          </label>
+          <label>Numero apartamento
+            <input data-bind="address.apartmentNumber" />
+          </label>
+          <label>Bairro
+            <input data-bind="address.neighborhood" />
+          </label>
+          <label>Cidade
+            <input data-bind="address.city" />
+          </label>
+          <label>CEP <span class="required-mark">*</span>
+            <input data-bind="address.cep" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Documentos e dados pessoais</h2>
+            <p class="muted">Informacoes de identificacao presentes na ficha original.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Carteira de trabalho <span class="required-mark">*</span>
+            <input data-bind="documents.workCardNumber" />
+          </label>
+          <label>Serie CTPS
+            <input data-bind="documents.workCardSeries" />
+          </label>
+          <label>Data emissao CTPS
+            <input data-bind="documents.workCardIssueDate" type="date" />
+          </label>
+          <label>UF CTPS
+            <input data-bind="documents.workCardIssueState" maxlength="2" />
+          </label>
+          <label>RG
+            <input data-bind="documents.rg" />
+          </label>
+          <label>Orgao emissor RG
+            <input data-bind="documents.rgIssuer" />
+          </label>
+          <label>Data emissao RG
+            <input data-bind="documents.rgIssueDate" type="date" />
+          </label>
+          <label>CPF <span class="required-mark">*</span>
+            <input data-bind="documents.cpf" />
+          </label>
+          <label>PIS / PASEP <span class="required-mark">*</span>
+            <input data-bind="documents.pisPasep" />
+          </label>
+          <label>Titulo de eleitor
+            <input data-bind="documents.voterTitle" />
+          </label>
+          <label>Zona eleitoral
+            <input data-bind="documents.voterZone" />
+          </label>
+          <label>Sessao eleitoral
+            <input data-bind="documents.voterSection" />
+          </label>
+          <label>UF titulo
+            <input data-bind="documents.voterState" maxlength="2" />
+          </label>
+          <label>Certificado reservista
+            <input data-bind="documents.reservistCertificate" />
+          </label>
+          <label>Serie reservista
+            <input data-bind="documents.reservistSeries" />
+          </label>
+          <label>Categoria reservista
+            <input data-bind="documents.reservistCategory" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Dados complementares</h2>
+            <p class="muted">Escolaridade, tamanhos e informacoes bancarias.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Cargo
+            <select data-bind="employment.role">
+              <option value="">Selecione</option>
+              <option value="Vigia">Vigia</option>
+              <option value="Vigilante">Vigilante</option>
+              <option value="Auxiliar de manutencao">Auxiliar de manutencao</option>
+              <option value="Auxiliar de servicos gerais">Auxiliar de servicos gerais</option>
+              <option value="Controlador de acesso">Controlador de acesso</option>
+              <option value="Fiscal de piso">Fiscal de piso</option>
+              <option value="Supervisao">Supervisao</option>
+              <option value="Auxiliar de Monitoramento">Auxiliar de Monitoramento</option>
+              <option value="Coordenacao">Coordenacao</option>
+              <option value="Gerencia">Gerencia</option>
+              <option value="Lider de recepcao">Lider de recepcao</option>
+              <option value="Recepcionista">Recepcionista</option>
+              <option value="Administrativo">Administrativo</option>
+            </select>
+          </label>
+          <label>Grau de escolaridade <span class="required-mark">*</span>
+            <select data-bind="employment.educationLevel">
+              <option value="">Selecione</option>
+              <option value="Analfabeto/Sem escolaridade">Analfabeto/Sem escolaridade</option>
+              <option value="Fundamental Incompleto">Fundamental Incompleto</option>
+              <option value="Fundamental Completo">Fundamental Completo</option>
+              <option value="Medio Incompleto">Medio Incompleto</option>
+              <option value="Medio Completo">Medio Completo</option>
+              <option value="Superior Incompleto">Superior Incompleto</option>
+              <option value="Superior Completo">Superior Completo</option>
+              <option value="Pos-graduacao">Pos-graduacao</option>
+              <option value="Mestrado">Mestrado</option>
+              <option value="Doutorado">Doutorado</option>
+            </select>
+          </label>
+          <label>Estado civil <span class="required-mark">*</span>
+            <select data-bind="employment.maritalStatus">
+              <option value="">Selecione</option>
+              <option value="Solteiro(a)">Solteiro(a)</option>
+              <option value="Casado(a)">Casado(a)</option>
+              <option value="Divorciado(a)">Divorciado(a)</option>
+              <option value="Viuvo(a)">Viuvo(a)</option>
+              <option value="Uniao Estavel">Uniao Estavel</option>
+            </select>
+          </label>
+          <label>Primeiro emprego
+            <select data-bind="employment.firstJob">
+              <option value="">Selecione</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Nao</option>
+            </select>
+          </label>
+          <label>Sapato / Bota
+            <input data-bind="employment.shoeSize" />
+          </label>
+          <label>Camisa
+            <input data-bind="employment.shirtSize" />
+          </label>
+          <label>Camiseta
+            <input data-bind="employment.tshirtSize" />
+          </label>
+          <label>Jaqueta
+            <input data-bind="employment.jacketSize" />
+          </label>
+          <label>Calca
+            <input data-bind="employment.pantsSize" />
+          </label>
+          <label>Chave Pix <span class="required-mark">*</span>
+            <input data-bind="employment.pixKey" />
+          </label>
+          <label>Banco <span class="required-mark">*</span>
+            <input data-bind="employment.bank" />
+          </label>
+          <label>Conjuge dependente IR
+            <select data-bind="employment.spouseTaxDependent">
+              <option value="">Selecione</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Nao</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Dependentes</h2>
+            <p class="muted">Campos equivalentes a nome, parentesco, data de nascimento e CPF.</p>
+          </div>
+          <button id="addDependentBtn" class="button secondary" type="button">Adicionar dependente</button>
+        </div>
+        <p class="muted section-note">Para os dependentes, favor anexar copias das certidoes de nascimento, RG e CPF.</p>
+        <div id="dependentsList" class="stack-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Declaracao e LGPD</h2>
+            <p class="muted">Registre os dados digitados para as assinaturas declaratorias.</p>
+          </div>
+        </div>
+        <div class="legal-copy">
+          <p>Declaro para os devidos fins que as informacoes constantes deste formulario sao fieis a verdade e condizentes com a realidade dos fatos a epoca.</p>
+          <p>Declaro que todas as informacoes mencionadas neste formulario foram extraidas dos documentos e sao da minha inteira responsabilidade.</p>
+          <p>Alem disso, fui informado de que se houver qualquer alteracao nesta Declaracao, a mesma devera ser modificada junto ao Departamento de Recursos Humanos.</p>
+          <p>Por fim, fico ciente de que atraves deste documento a falsidade das informacoes configura crime previsto no Codigo Penal Brasileiro e passivel de apuracao na forma da Lei.</p>
+          <p>Nada mais a declarar e ciente da responsabilidade pelas declaracoes prestadas, firmo a presente.</p>
+        </div>
+        <div class="form-grid">
+          <label>Nome declaracao
+            <input data-bind="declaration.name" placeholder="Normalmente o mesmo nome completo" />
+          </label>
+          <label>Local declaracao
+            <input data-bind="declaration.place" />
+          </label>
+          <label>Data declaracao
+            <input data-bind="declaration.date" type="date" />
+          </label>
+          <label class="full-width">Observacao declaracao
+            <textarea data-bind="declaration.notes" rows="3" placeholder="Observacoes complementares, se necessario."></textarea>
+          </label>
+        </div>
+        <div class="legal-copy">
+          <p><strong>Termo de consentimento para tratamento de dados pessoais, Lei Geral de Protecao de Dados Pessoais - LGPD</strong></p>
+          <p>1 - Tenho conhecimento e autorizo que meus dados pessoais sejam mantidos pela contratante para os fins deste contrato de trabalho, escrituracao digital e cumprimento da legislacao trabalhista e previdenciaria, o que perdurara mesmo apos o vinculo trabalhista ser finalizado diante de eventual necessidade de apresentacao judicial ou administrativa por requisicao de orgao fiscalizador, de acordo com os artigos 7 e 11 da Lei 13.709/2018.</p>
+          <p>2 - O eventual compartilhamento dos meus dados pessoais com terceiros, com excessao das questoes ja autorizadas acima, fica condicionada a autorizacao expressa do contratado, sob pena de responsabilizacao em caso de uso indevido, diante da observancia dos direitos instituidos no artigo 18 da Lei 13.709/2018.</p>
+        </div>
+        <div class="form-grid">
+          <label>Nome LGPD <span class="required-mark">*</span>
+            <input data-bind="lgpd.name" />
+          </label>
+          <label>Local LGPD <span class="required-mark">*</span>
+            <input data-bind="lgpd.place" />
+          </label>
+          <label>Data LGPD <span class="required-mark">*</span>
+            <input data-bind="lgpd.date" type="date" />
+          </label>
+        </div>
+        <label class="check-item consent-toggle">
+          <input id="lgpdAgreement" data-bind="lgpd.agreement" type="checkbox" />
+          <span>Declaro que estou de acordo e e de meu entendimento as declaracoes acima. <span class="required-mark">*</span></span>
+        </label>
+      </section>
+
+      <section id="transportSection" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Vale transporte</h2>
+            <p class="muted">So preencha esta parte se o colaborador aceitar o vale transporte.</p>
+          </div>
+        </div>
+        <div class="transport-choice-grid">
+          <label class="check-item transport-toggle">
+            <input id="transportAcceptYes" type="checkbox" />
+            <span>Aceito Vale Transporte. <span class="required-mark">*</span></span>
+          </label>
+          <label class="check-item transport-toggle">
+            <input id="transportAcceptNo" type="checkbox" />
+            <span>Nao aceito Vale Transporte. <span class="required-mark">*</span></span>
+          </label>
+        </div>
+        <div class="legal-copy">
+          <p>Eu, declaro, para os devidos fins, que resido no endereco abaixo.</p>
+          <p>Optando por nao receber vale-transporte ou por receber vale-transporte, comprometendo-me a utiliza-lo somente para o meu deslocamento residencia-trabalho e vice-versa.</p>
+          <p>Comprometo-me tambem a renovar o endereco residencial acima declarado, anualmente ou sempre que houver alteracoes do mesmo ou dos meios de transporte mais adequados ao meu deslocamento residencia-trabalho e vice-versa.</p>
+          <p>Declaro estar igualmente ciente de que 6% do meu salario basico ou vencimento podera ser utilizado para custear os vales-transporte, e que a afirmacao falsa ou o uso indevido dos mesmos constitui falta grave.</p>
+          <p>Declaro para todos os fins, inclusive para fazer jus a opcao de recebimento de vale-transporte, residir no endereco declarado neste documento, sendo de minha inteira responsabilidade a improcedencia das informacoes declaradas.</p>
+        </div>
+        <div id="transportFields" class="form-grid">
+          <label>Rua
+            <input data-bind="transport.street" data-transport-field />
+          </label>
+          <label>Numero
+            <input data-bind="transport.number" data-transport-field />
+          </label>
+          <label>UF
+            <input data-bind="transport.state" data-transport-field maxlength="2" />
+          </label>
+          <label>Bairro
+            <input data-bind="transport.neighborhood" data-transport-field />
+          </label>
+          <label>Cidade
+            <input data-bind="transport.city" data-transport-field />
+          </label>
+          <label>CEP
+            <input data-bind="transport.cep" data-transport-field />
+          </label>
+          <label>Nome declaracao VT
+            <input data-bind="transport.name" data-transport-field />
+          </label>
+          <label>Local VT
+            <input data-bind="transport.place" data-transport-field />
+          </label>
+          <label>Data VT
+            <input data-bind="transport.date" data-transport-field type="date" />
+          </label>
+        </div>
+      </section>
+
+      <section id="homeRouteSection" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Trajeto residencia - trabalho</h2>
+            <p class="muted">Adicione quantas linhas forem necessarias.</p>
+          </div>
+          <button id="addHomeRouteBtn" class="button secondary" type="button">Adicionar linha</button>
+        </div>
+        <div id="homeToWorkList" class="stack-list"></div>
+      </section>
+
+      <section id="workRouteSection" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Trajeto trabalho - residencia</h2>
+            <p class="muted">Preencha o retorno conforme a declaracao original.</p>
+          </div>
+          <button id="addWorkRouteBtn" class="button secondary" type="button">Adicionar linha</button>
+        </div>
+        <div id="workToHomeList" class="stack-list"></div>
+        <div class="legal-copy compact-copy">
+          <p>Conforme os artigos 2 e 3 do Decreto 95.247.</p>
+          <p>Conforme o artigo 9 do Decreto 95.247.</p>
+          <p>Conforme o paragrafo 3 do artigo 7 do Decreto 95.247.</p>
+        </div>
+      </section>
+
+      <section id="rhSection" class="panel hidden">
+        <div class="section-head">
+          <div>
+            <h2>Controle RH</h2>
+            <p class="muted">Campos de acompanhamento do cadastro.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Status
+            <select data-bind="meta.status">
+              <option value="em_preenchimento">Em preenchimento</option>
+              <option value="recebido">Recebido</option>
+              <option value="em_analise">Em analise</option>
+              <option value="concluido">Concluido</option>
+            </select>
+          </label>
+          <label>Empresa
+            <input data-bind="meta.company" />
+          </label>
+          <label>Cargo
+            <input data-bind="meta.role" />
+          </label>
+          <label>Data admissao
+            <input data-bind="meta.admissionDate" type="date" />
+          </label>
+          <label class="full-width">Observacoes RH
+            <textarea data-bind="meta.rhNotes" rows="4" placeholder="Campo interno para anotacoes do RH."></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section id="finalSignatureSection" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Assinatura final obrigatoria <span class="required-mark">*</span></h2>
+            <p class="muted">Esta deve ser a ultima etapa. O colaborador precisa assinar e depois clicar em Enviar.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>Nome para assinatura
+            <input data-bind="finalSignature.name" placeholder="Nome completo do colaborador" />
+          </label>
+          <label>Local da assinatura
+            <input data-bind="finalSignature.place" placeholder="Cidade da assinatura" />
+          </label>
+          <label>Data da assinatura
+            <input data-bind="finalSignature.date" type="date" />
+          </label>
+        </div>
+        <section class="signature-shell final-signature-shell">
+          <div class="signature-head">
+            <strong>Assinatura do colaborador</strong>
+            <button class="button secondary small" data-clear-signature="finalSignature" type="button">Limpar assinatura</button>
+          </div>
+          <div class="signature-wrap">
+            <canvas data-signature-canvas="finalSignature"></canvas>
+            <div class="signature-caption">Assinatura obrigatoria. Depois de assinar, clique em Enviar.</div>
+          </div>
+        </section>
+      </section>
+    </form>
+
+    <template id="dependentTemplate">
+      <article class="stack-card">
+        <div class="stack-card-head">
+          <strong data-row-title>Dependente</strong>
+          <button class="button danger small" type="button" data-remove-row>Remover</button>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Nome <span class="required-mark">*</span>
+            <input data-field="name" />
+          </label>
+          <label>Parentesco <span class="required-mark">*</span>
+            <input data-field="relationship" />
+          </label>
+          <label>Data nascimento <span class="required-mark">*</span>
+            <input data-field="birthDate" type="date" />
+          </label>
+          <label>CPF <span class="required-mark">*</span>
+            <input data-field="cpf" />
+          </label>
+        </div>
+      </article>
+    </template>
+
+    <template id="routeTemplate">
+      <article class="stack-card">
+        <div class="stack-card-head">
+          <strong data-row-title>Linha</strong>
+          <button class="button danger small" type="button" data-remove-row>Remover</button>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Linha
+            <input data-field="line" />
+          </label>
+          <label>Empresa operadora
+            <input data-field="operator" />
+          </label>
+          <label>Tarifa atual
+            <input data-field="fare" />
+          </label>
+        </div>
+      </article>
+    </template>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/gate-config.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/admissao/rules.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/admissao/pdf.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/admissao/editor.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

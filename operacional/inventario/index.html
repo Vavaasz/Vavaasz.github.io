@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventario - Operacional</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const ASSET_BUST_FALLBACK = "20260622-inventario-veiculos";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || ASSET_BUST_FALLBACK;
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) url.searchParams.set("v", token);
+        return `${url.pathname}${url.search}`;
+      };
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = window.tkaResolveAssetUrl("/operacional/inventario/body-cam/styles.css");
+      document.head.appendChild(link);
+      const themeLink = document.createElement("link");
+      themeLink.rel = "stylesheet";
+      themeLink.href = window.tkaResolveAssetUrl("/shared/tka-theme.css");
+      document.head.appendChild(themeLink);
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Operacional</p>
+      <h1>Inventario</h1>
+      <p class="muted">Controle operacional de equipamentos e termos vinculados.</p>
+    </div>
+    <div class="topbar-side">
+      <a class="button secondary" href="/?tab=systems">Home</a>
+      <a class="button secondary" href="/operacional/permuta/">Permuta</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel inventory-hero">
+      <div>
+        <p class="eyebrow">Modulo operacional</p>
+        <h2>Inventario de equipamentos</h2>
+        <p class="muted">Entrada central para controles de equipamentos, termos digitais, pendencias e documentos de responsabilidade.</p>
+      </div>
+      <div class="summary-strip">
+        <article class="summary-card"><span>Categorias ativas</span><strong>Body Cam / Veiculos</strong></article>
+        <article class="summary-card"><span>Documento</span><strong>Termo digital</strong></article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Equipamentos</h2>
+          <p class="muted">Selecione a categoria de inventario operacional.</p>
+        </div>
+      </div>
+      <div class="record-list">
+        <article class="record-card">
+          <div class="record-card-head">
+            <div>
+              <h2>Body Cam</h2>
+              <p class="muted">Cadastro de cameras corporativas, geracao de termo de responsabilidade, acompanhamento de pendencias e arquivo.</p>
+            </div>
+            <div class="chip-row"><span class="chip">Termo digital</span><span class="chip">PDF</span></div>
+          </div>
+          <div class="record-actions">
+            <a class="button" href="/operacional/inventario/body-cam/">Abrir Body Cam</a>
+          </div>
+        </article>
+        <article class="record-card">
+          <div class="record-card-head">
+            <div>
+              <h2>Veiculos</h2>
+              <p class="muted">Cadastro de veiculos da frota, termo de responsabilidade, assinatura do Diretor, Coordenacao Operacional, Lideranca Operacional, PDF e arquivo.</p>
+            </div>
+            <div class="chip-row"><span class="chip">Termo digital</span><span class="chip">Frota</span></div>
+          </div>
+          <div class="record-actions">
+            <a class="button" href="/operacional/inventario/veiculos/">Abrir Veiculos</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="/shared/tka-theme.js"></script>
+</body>
+</html>

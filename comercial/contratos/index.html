@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comercial TKA - Contratos - Monitoramento</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || "";
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) {
+          url.searchParams.set("v", token);
+        }
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/comercial/contratos/list.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Grupo TKA</p>
+      <h1>Contratos - Monitoramento</h1>
+      <p class="muted">Registro interno de contratos de monitoramento, comodato e anexos de equipamentos.</p>
+    </div>
+    <div class="topbar-side">
+      <a id="homeLink" class="button secondary" href="/?tab=systems">Home</a>
+      <button id="uploadContractBtn" class="button secondary" type="button">Upload contrato</button>
+      <input id="uploadContractInput" class="visually-hidden" type="file" accept=".pdf,.docx,.txt,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv" />
+      <button id="newPublicLinkBtn" class="button" type="button">Novo Link Publico</button>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <span id="newPublicLinkStatus" class="topbar-status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel">
+      <div class="tabs-bar">
+        <button class="tab-btn active" data-tab="ativos" type="button">Ativos</button>
+        <button class="tab-btn" data-tab="arquivados" type="button">Arquivados</button>
+      </div>
+
+      <div id="tab-ativos">
+        <div class="panel-head">
+          <strong>Base de monitoramento</strong>
+          <span id="countLabel" class="muted">Carregando...</span>
+        </div>
+        <div id="contractList" class="contract-list"></div>
+      </div>
+
+      <div id="tab-arquivados" hidden>
+        <div class="panel-head">
+          <strong>Contratos arquivados</strong>
+          <span id="archivedCountLabel" class="muted">Carregando...</span>
+        </div>
+        <div id="archivedContractList" class="contract-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/comercial/shared/contract-importer.js"))
+      .then(() => window.tkaLoadLocalScript("/comercial/contratos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/comercial/contratos/list.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Permuta - Operacional</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const ASSET_BUST_FALLBACK = "20260428-1300";
+      window.tkaResolveAssetUrl = function (path) {
+        const refreshToken = new URLSearchParams(window.location.search).get("__tka_refresh__");
+        if (refreshToken) localStorage.setItem(ASSET_BUST_KEY, refreshToken);
+        const token = refreshToken || localStorage.getItem(ASSET_BUST_KEY) || ASSET_BUST_FALLBACK;
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) url.searchParams.set("v", token);
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/operacional/permuta/styles.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Operacional</p>
+      <h1 id="pageTitle">Editor de Permuta</h1>
+      <p class="muted">Documento interno para troca de plantao com assinatura das partes e do supervisor.</p>
+    </div>
+    <div class="topbar-side">
+      <a id="backToListLink" class="button secondary" href="/operacional/permuta/">Voltar para lista</a>
+      <a id="homeLink" class="button secondary" href="/?tab=systems">Home</a>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <button id="copyPublicLinkBtn" class="button secondary" type="button">Copiar link</button>
+      <button id="exportPdfBtn" class="button secondary" type="button">Exportar PDF</button>
+      <button id="saveBtn" class="button" type="button">Salvar</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel">
+      <div class="panel-head">
+        <strong>Dados da permuta</strong>
+        <div class="status-stack">
+          <span id="statusChip" class="chip">Incompleta</span>
+          <span id="saveStatus" class="muted">Aguardando preenchimento</span>
+        </div>
+      </div>
+      <form class="form-grid">
+        <label>Posto de servico<input id="placeName" required /></label>
+        <label>Data da solicitacao<input id="requestDate" type="date" required /></label>
+        <label>Data do plantao original<input id="shiftDate" type="date" required /></label>
+        <label>Horario inicial<input id="shiftStart" type="time" required /></label>
+        <label>Horario final<input id="shiftEnd" type="time" required /></label>
+        <label class="field-wide">Observacoes internas<textarea id="notes" rows="3"></textarea></label>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><strong>Colaborador solicitante</strong></div>
+      <form class="form-grid">
+        <label>Nome completo<input id="employeeAName" required /></label>
+        <label>CPF<input id="employeeACpf" required /></label>
+        <label>RG<input id="employeeARg" required /></label>
+        <label>Dia a trabalhar<input id="employeeADate1" type="date" /></label>
+        <div class="field-wide signature-block">
+          <div class="signature-head"><strong>Assinatura do colaborador solicitante</strong><button class="button secondary" data-clear-signature="employeeA" type="button">Limpar</button></div>
+          <canvas id="employeeASignature" class="signature-pad" width="900" height="220"></canvas>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><strong>Colaborador que assume</strong></div>
+      <form class="form-grid">
+        <label>Nome completo<input id="employeeBName" required /></label>
+        <label>CPF<input id="employeeBCpf" required /></label>
+        <label>RG<input id="employeeBRg" required /></label>
+        <label>Dia de Trabalho<input id="employeeBDate1" type="date" /></label>
+        <div class="field-wide signature-block">
+          <div class="signature-head"><strong>Assinatura do colaborador que assume</strong><button class="button secondary" data-clear-signature="employeeB" type="button">Limpar</button></div>
+          <canvas id="employeeBSignature" class="signature-pad" width="900" height="220"></canvas>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><strong>Supervisor operacional</strong></div>
+      <form class="form-grid">
+        <label>Nome do supervisor<input id="supervisorName" required /></label>
+        <div class="field-wide signature-block">
+          <div class="signature-head"><strong>Assinatura do supervisor</strong><button class="button secondary" data-clear-signature="supervisor" type="button">Limpar</button></div>
+          <canvas id="supervisorSignature" class="signature-pad" width="900" height="220"></canvas>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/operacional/permuta/pdf.js"))
+      .then(() => window.tkaLoadLocalScript("/operacional/permuta/editor.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

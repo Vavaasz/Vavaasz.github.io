@@ -1,0 +1,34 @@
+{
+  "name": "TKA Monitoramento WhatsApp",
+  "short_name": "TKA Monitoramento",
+  "description": "Monitoramento live de intervencoes do WhatsApp da TKA.",
+  "id": "/whatsappmonitoramento/app/",
+  "start_url": "/whatsappmonitoramento/app/",
+  "scope": "/whatsappmonitoramento/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1217",
+  "theme_color": "#0f1217",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/tka-shield-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/tka-shield-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Intervencoes",
+      "short_name": "Intervencoes",
+      "url": "/whatsappmonitoramento/app/"
+    }
+  ]
+}

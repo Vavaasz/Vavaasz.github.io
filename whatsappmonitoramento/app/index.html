@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TKA Monitoramento WhatsApp Operacional</title>
+  <meta name="theme-color" content="#0f1217">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TKA Monitoramento">
+  <link rel="manifest" href="/whatsappmonitoramento/manifest.webmanifest">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/tka-shield-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/tka-shield-180.png">
+  <link rel="stylesheet" href="/whatsappmonitoramento/styles.css">
+</head>
+<body class="launcher-mobile-mode">
+  <main class="shell" aria-label="TKA Monitoramento WhatsApp Overlay">
+    <header class="titlebar">
+      <div class="brand">
+        <img class="brand-mark" src="/assets/tka-shield-64.png" alt="" aria-hidden="true">
+        <div>
+          <strong>Operacao Monitoramento</strong>
+          <span id="clock">--:--</span>
+        </div>
+      </div>
+      <div class="window-actions">
+        <a class="icon-window" href="/whatsappmonitoramento/" title="Desktop" aria-label="Desktop">_</a>
+        <a class="icon-window" href="/whatsappmonitoramento/mobile/" title="Painel" aria-label="Painel">-</a>
+        <a class="icon-window danger" href="/?tab=systems" title="Portal" aria-label="Portal">x</a>
+      </div>
+    </header>
+
+    <section class="summary-panel" aria-live="polite">
+      <div>
+        <span class="eyebrow">Hora monitorada</span>
+        <h1 id="hourLabel">--h</h1>
+      </div>
+      <div class="summary-grid">
+        <button class="summary-card" type="button" data-summary-detail="expected" aria-expanded="false" aria-controls="summaryDropdown"><b id="expectedCount">0</b><span>esperados</span></button>
+        <button class="summary-card" type="button" data-summary-detail="due" aria-expanded="false" aria-controls="summaryDropdown"><b id="dueCount">0</b><span>intervencoes</span></button>
+        <button class="summary-card" type="button" data-summary-detail="queue" aria-expanded="false" aria-controls="summaryDropdown"><b id="queueCount">0</b><span>fila</span></button>
+      </div>
+      <div id="summaryDropdown" class="summary-dropdown hidden" role="region" aria-live="polite"></div>
+    </section>
+
+    <section class="runtime-panel" aria-live="polite">
+      <div>
+        <span>WhatsApp</span>
+        <strong id="runtimeWhatsapp">--</strong>
+      </div>
+      <div>
+        <span>Atualizado</span>
+        <strong id="runtimeLastMessage">--</strong>
+      </div>
+    </section>
+
+    <section id="activePopup" class="popup-card">
+      <div class="popup-empty">Carregando intervencoes do Monitoramento...</div>
+    </section>
+
+    <section class="queue-panel">
+      <div class="section-line">
+        <strong>Fila atual</strong>
+        <span id="sourceInfo">Conectando...</span>
+      </div>
+      <div class="queue-tabs" role="tablist" aria-label="Fila do Monitoramento">
+        <button class="queue-tab active" type="button" data-queue-tab="pending" role="tab" aria-selected="true">Fila</button>
+        <button class="queue-tab" type="button" data-queue-tab="confirmed" role="tab" aria-selected="false">Resolvidos</button>
+      </div>
+      <div id="queueList" class="queue-list"></div>
+    </section>
+
+    <footer class="footer">
+      <button id="reloadButton" type="button">Dados</button>
+      <button id="updateAppButton" type="button">App</button>
+      <button id="logsButton" type="button">Logs</button>
+    </footer>
+  </main>
+
+  <section id="logsModal" class="logs-modal hidden" aria-label="Logs do Monitoramento" aria-modal="true">
+    <div class="logs-panel">
+      <div class="logs-head">
+        <div>
+          <strong>Logs do app</strong>
+          <span id="logsSubtitle">Carregando...</span>
+        </div>
+        <button id="closeLogsButton" class="icon-window" type="button" title="Fechar logs" aria-label="Fechar logs">x</button>
+      </div>
+      <div id="logsBody" class="logs-body"></div>
+      <div class="logs-actions">
+        <button id="refreshLogsButton" type="button">Atualizar logs</button>
+        <button id="copyLogsButton" type="button">Copiar resumo</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    window.TKA_HIDE_MAINTENANCE_TOOLS = true;
+    window.TKA_MOBILE_MODE = true;
+    window.TKA_PWA_MODE = true;
+    window.TKA_LAUNCHER_MOBILE_MODE = true;
+    window.TKA_MONITORAMENTO_OPERATIONAL = true;
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || "";
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) url.searchParams.set("v", token);
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+    })();
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js?wv=whatsapp-launcher-mobile-20260618-6"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/whatsappmonitoramento/public-bridge-config.js?v=20260623-live-logs"))
+      .then(() => window.tkaLoadLocalScript("/whatsappmonitoramento/app.js?v=launcher-mobile-20260624-shift-export-edit-v4"))
+      .catch(error => console.error(error));
+</script>
+</body>
+</html>

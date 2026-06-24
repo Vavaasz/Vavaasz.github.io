@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contrato - Serviços Gerais TKA</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const BUILD_ASSET_VERSION = "commercial-signature-contratada-20260604-1156";
+      window.tkaResolveAssetUrl = function (path) {
+        const storedToken = localStorage.getItem(ASSET_BUST_KEY) || "";
+        const token = [BUILD_ASSET_VERSION, storedToken].filter(Boolean).join("-");
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) {
+          url.searchParams.set("v", token);
+        }
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/comercial/contratos-servicos-gerais/editor.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <div class="page-backdrop" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="brand-lockup">
+      <img class="brand-logo" src="/comercial/contratos-servicos-gerais/assets/TKA-logo.jpeg" alt="Grupo TKA" />
+      <div>
+        <p class="eyebrow">Grupo TKA</p>
+        <h1>Contrato - Serviços Gerais</h1>
+        <p class="subcopy">Prestacao de servicos gerais, portaria, controle de acesso, zeladoria e postos operacionais no padrao comercial TKA.</p>
+      </div>
+    </div>
+
+    <div class="header-actions" data-admin-only>
+      <div class="header-buttons">
+        <a class="ghost-button" href="/comercial/contratos-servicos-gerais/">Voltar aos contratos</a>
+        <button class="secondary-button" id="saveContractTop" type="button">Salvar contrato</button>
+        <button class="primary-button" id="savePdfTop" type="button">Salvar PDF</button>
+        <button class="secondary-button" id="sharePdfTop" type="button">Compartilhar PDF</button>
+        <button class="secondary-button" id="publicLinkTop" type="button">Link Publico</button>
+      </div>
+      <p class="save-status" id="saveStatus">Carregando contrato...</p>
+      <p class="export-status" id="exportStatus"></p>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="paper-shell">
+      <div class="paper-top">
+        <img class="paper-logo" src="/comercial/contratos-servicos-gerais/assets/TKA-logo.jpeg" alt="Grupo TKA" />
+        <div class="paper-meta">
+          <span>Grupo TKA</span>
+          <strong>Contrato de Serviços Gerais</strong>
+        </div>
+      </div>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Dados do Contrato</p>
+          <span>Informações principais, vigência e emissão do instrumento.</span>
+        </div>
+        <div class="form-grid contract-grid">
+          <label class="field">
+            <span>Código interno</span>
+            <input data-path="contract.contractCode" type="text" placeholder="Ex.: TKA_326_0226" />
+          </label>
+          <label class="field">
+            <span>Cidade de emissão</span>
+            <input data-path="contract.issueCity" type="text" placeholder="Cidade" />
+          </label>
+          <label class="field">
+            <span>Data de emissão</span>
+            <input data-path="contract.issueDate" type="date" />
+          </label>
+          <label class="field">
+            <span>Início da vigência</span>
+            <input data-path="contract.startDate" type="date" />
+          </label>
+          <label class="field">
+            <span>Fim da vigência</span>
+            <input data-path="contract.endDate" type="date" />
+          </label>
+          <label class="field">
+            <span>Prazo em meses</span>
+            <input data-path="contract.durationMonths" type="number" min="1" placeholder="24" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Contratante</p>
+          <span>Dados da empresa cliente e de quem assina o contrato.</span>
+        </div>
+        <div class="form-grid business-grid">
+          <label class="field field-large">
+            <span>Nome fantasia</span>
+            <input data-path="contractor.companyName" type="text" placeholder="Nome principal da empresa" />
+          </label>
+          <label class="field field-large">
+            <span>Razão social</span>
+            <input data-path="contractor.legalName" type="text" placeholder="Razão social completa" />
+          </label>
+          <label class="field">
+            <span>CNPJ</span>
+            <input data-path="contractor.cnpj" type="text" placeholder="00.000.000/0000-00" />
+          </label>
+          <label class="field">
+            <span>Representante</span>
+            <input data-path="contractor.representativeName" type="text" placeholder="Nome do responsável" />
+          </label>
+          <label class="field">
+            <span>Cargo do representante</span>
+            <input data-path="contractor.representativeRole" type="text" placeholder="Sócio administrador, diretor, etc." />
+          </label>
+          <label class="field">
+            <span>CPF do representante</span>
+            <input data-path="contractor.representativeCpf" type="text" placeholder="000.000.000-00" />
+          </label>
+          <label class="field">
+            <span>RG do representante</span>
+            <input data-path="contractor.representativeRg" type="text" placeholder="Documento" />
+          </label>
+          <label class="field field-large">
+            <span>Endereço</span>
+            <input data-path="contractor.address" type="text" placeholder="Rua, avenida ou logradouro" />
+          </label>
+          <label class="field">
+            <span>Número</span>
+            <input data-path="contractor.number" type="text" placeholder="Número" />
+          </label>
+          <label class="field">
+            <span>Complemento</span>
+            <input data-path="contractor.complement" type="text" placeholder="Sala, bloco ou referência" />
+          </label>
+          <label class="field">
+            <span>Bairro</span>
+            <input data-path="contractor.district" type="text" placeholder="Bairro" />
+          </label>
+          <label class="field">
+            <span>CEP</span>
+            <input data-path="contractor.cep" type="text" placeholder="00000-000" />
+          </label>
+          <label class="field">
+            <span>Cidade</span>
+            <input data-path="contractor.city" type="text" placeholder="Cidade" />
+          </label>
+          <label class="field">
+            <span>Estado</span>
+            <input data-path="contractor.state" type="text" placeholder="UF" />
+          </label>
+          <label class="field">
+            <span>Inscrição Municipal (IM)</span>
+            <input data-path="contractor.im" type="text" placeholder="Nº IM" />
+          </label>
+          <label class="field">
+            <span>Inscrição Estadual (IE)</span>
+            <input data-path="contractor.ie" type="text" placeholder="Nº IE" />
+          </label>
+          <label class="field">
+            <span>Telefone</span>
+            <input data-path="contractor.phone" type="tel" placeholder="(00)0000-0000" />
+          </label>
+          <label class="field field-large">
+            <span>E-mail principal</span>
+            <input data-path="contractor.email1" type="email" placeholder="email@exemplo.com" />
+          </label>
+          <label class="field field-large">
+            <span>E-mail secundário</span>
+            <input data-path="contractor.email2" type="email" placeholder="email@exemplo.com" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Local da Prestacao</p>
+          <span>Endereco atendido, referencia operacional e dados do posto contratado.</span>
+        </div>
+        <div class="form-grid business-grid">
+          <label class="field field-large">
+            <span>Nome do local</span>
+            <input data-path="service.monitoredLocationName" type="text" placeholder="Ex.: Condominio, associacao ou empresa" />
+          </label>
+          <label class="field field-large">
+            <span>Endereço do local</span>
+            <input data-path="service.monitoredAddress" type="text" placeholder="Rua, avenida ou logradouro" />
+          </label>
+          <label class="field">
+            <span>Número</span>
+            <input data-path="service.monitoredNumber" type="text" placeholder="Número" />
+          </label>
+          <label class="field">
+            <span>Complemento</span>
+            <input data-path="service.monitoredComplement" type="text" placeholder="Complemento" />
+          </label>
+          <label class="field">
+            <span>Bairro</span>
+            <input data-path="service.monitoredDistrict" type="text" placeholder="Bairro" />
+          </label>
+          <label class="field">
+            <span>CEP</span>
+            <input data-path="service.monitoredCep" type="text" placeholder="00000-000" />
+          </label>
+          <label class="field">
+            <span>Cidade</span>
+            <input data-path="service.monitoredCity" type="text" placeholder="Cidade" />
+          </label>
+          <label class="field">
+            <span>Estado</span>
+            <input data-path="service.monitoredState" type="text" placeholder="UF" />
+          </label>
+          <label class="field field-large">
+            <span>Referência do local</span>
+            <input data-path="service.monitoredReference" type="text" placeholder="Ex.: Plantão de Vendas" />
+          </label>
+          <label class="field field-large">
+            <span>Observacoes do servico</span>
+            <input data-path="service.communicationMethod" type="text" placeholder="Ex.: regras operacionais, cobertura, observacoes" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Valores e Cobrança</p>
+          <span>Valor mensal, hora extra, reajuste e dados de pagamento do contrato.</span>
+        </div>
+        <div class="form-grid price-grid">
+          <label class="field">
+            <span>Valor mensal</span>
+            <input data-path="pricing.monitoringMonthly" type="text" placeholder="1.500,00" />
+          </label>
+          <label class="field">
+            <span>Valor da hora extra</span>
+            <input data-path="pricing.equipmentRentalMonthly" type="text" placeholder="550,00" />
+          </label>
+          <label class="field">
+            <span>Carga minima extra</span>
+            <input data-path="pricing.installationTotal" type="text" placeholder="Ex.: 6 horas" />
+          </label>
+          <label class="field">
+            <span>Reajuste</span>
+            <input data-path="pricing.installationInstallments" type="text" placeholder="Ex.: 12 meses / CCT" />
+          </label>
+          <label class="field">
+            <span>Dia de vencimento</span>
+            <input data-path="pricing.dueDay" type="text" placeholder="Ex.: 10" />
+          </label>
+          <label class="field field-large">
+            <span>Forma de pagamento</span>
+            <input data-path="pricing.paymentMethod" type="text" placeholder="Boletos bancários" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Postos e Funcoes</p>
+          <span>Relacao de funcoes, escalas e postos de trabalho contratados.</span>
+        </div>
+        <div class="toolbar-inline">
+          <button class="secondary-button" id="addEquipment" type="button" data-admin-only>Adicionar posto</button>
+          <strong id="equipmentCount">0 postos</strong>
+        </div>
+        <div class="repeat-list" id="equipmentList"></div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-heading">
+          <p>Prévia Contratual</p>
+        </div>
+        <div class="preview-shell" id="contractPreview"></div>
+      </section>
+
+      <section class="panel-section signature-section">
+        <div class="section-heading">
+          <p>Assinatura</p>
+          <span>Preencha os dados do assinante e assine digitalmente abaixo.</span>
+        </div>
+
+        <div class="form-grid signature-grid">
+          <label class="field field-large">
+            <span>Nome Completo</span>
+            <input data-path="sign.signerName" type="text" placeholder="Nome completo do assinante" />
+          </label>
+          <label class="field">
+            <span>Data</span>
+            <input data-path="sign.date" type="date" />
+          </label>
+          <label class="field">
+            <span>Cidade</span>
+            <input data-path="sign.city" type="text" placeholder="Cidade da assinatura" />
+          </label>
+          <label class="field">
+            <span>Data de Nascimento</span>
+            <input data-path="sign.birthDate" type="date" />
+          </label>
+          <label class="field">
+            <span>CPF</span>
+            <input data-path="sign.cpf" type="text" placeholder="000.000.000-00" />
+          </label>
+        </div>
+
+        <div class="signature-pair">
+          <div class="signature-wrap">
+            <div class="signature-canvas-shell">
+              <canvas id="signatureCanvas"></canvas>
+              <div class="signature-tool-row">
+                <button class="signature-tool-button" id="signatureEraser" type="button" title="Apagar pequenos trechos da assinatura" aria-label="Apagar pequenos trechos da assinatura" aria-pressed="false">Apagar</button>
+                <button class="signature-tool-button" id="undoSignature" type="button" title="Desfazer ultima alteracao da assinatura" aria-label="Desfazer ultima alteracao da assinatura">Undo</button>
+              </div>
+            </div>
+            <div class="signature-caption">
+              <strong>Assinatura do contratante</strong>
+              <span>Desenhe a assinatura diretamente na tela. O PDF final será gerado com essa assinatura.</span>
+            </div>
+          </div>
+
+          <div class="owner-signature-wrap">
+            <div class="owner-signature-preview">
+              <img id="ownerSignaturePreview" class="hidden" alt="Assinatura da Contratada" />
+              <span id="ownerSignatureEmpty">Assinatura da Contratada pendente no Admin.</span>
+            </div>
+            <div class="signature-caption">
+              <strong>Assinatura da Contratada</strong>
+              <span id="ownerSignatureMeta">Carregando assinatura...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar-inline end">
+          <button class="ghost-button" id="clearSignature" type="button">Limpar assinatura</button>
+        </div>
+
+      </section>
+
+      <footer class="paper-footer" data-admin-only>
+        <button class="secondary-button wide" id="saveContractBottom" type="button">Salvar contrato</button>
+        <button class="primary-button wide" id="savePdfBottom" type="button">Salvar PDF</button>
+        <button class="secondary-button wide" id="sharePdfBottom" type="button">Compartilhar PDF</button>
+        <button class="secondary-button wide" id="publicLinkBottom" type="button">Link Publico</button>
+      </footer>
+    </section>
+  </main>
+
+  <template id="equipmentTemplate">
+    <article class="repeat-card">
+      <div class="repeat-grid equipment-grid">
+        <label class="field">
+          <span>QTD</span>
+          <input data-field="quantity" type="text" placeholder="01" />
+        </label>
+        <label class="field field-large">
+          <span>Funcao / servico</span>
+          <input data-field="description" type="text" placeholder="Ex.: Controlador de Acesso" />
+        </label>
+        <label class="field field-large">
+          <span>Escala / horario</span>
+          <input data-field="location" type="text" placeholder="Ex.: 12x36 das 06h as 18h" />
+        </label>
+        <label class="field">
+          <span>Valor</span>
+          <input data-field="value" type="text" placeholder="0,00" />
+        </label>
+      </div>
+      <div class="repeat-card-footer" data-admin-only>
+        <button class="remove-button" data-remove="equipment" type="button">Remover posto</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/comercial/shared/contract-importer.js"))
+      .then(() => window.tkaLoadLocalScript("/comercial/contratos-servicos-gerais/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/comercial/contratos-servicos-gerais/app.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>
+
+

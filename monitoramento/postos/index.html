@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Postos TKA</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || "";
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) {
+          url.searchParams.set("v", token);
+        }
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/monitoramento/postos/styles.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Monitoramento</p>
+      <h1>Postos TKA</h1>
+      <p class="muted">Base de locais onde a TKA mantem trabalho ativo ou historico.</p>
+    </div>
+    <div class="topbar-side">
+      <a id="homeLink" class="button secondary" href="/?tab=systems">Home</a>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <button id="newPlaceBtn" class="button" type="button">Novo posto</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="summary-strip" aria-label="Resumo dos postos">
+      <article class="summary-card"><span>Ativos</span><strong id="activeSummary">0</strong></article>
+      <article class="summary-card"><span>Arquivados</span><strong id="archivedSummary">0</strong></article>
+      <article class="summary-card"><span>Cidades</span><strong id="citiesSummary">0</strong></article>
+      <article class="summary-card"><span>Com CEP</span><strong id="cepSummary">0</strong></article>
+    </section>
+
+    <section id="accessNotice" class="panel access-panel" hidden>
+      <h2>Acesso restrito</h2>
+      <p class="muted">Entre pelo Gerenciamento TKA com permissao de Monitoramento para consultar e editar os postos.</p>
+    </section>
+
+    <section id="workspace" class="workspace" hidden>
+      <section class="panel form-panel">
+        <div class="panel-head">
+          <div>
+            <strong id="formTitle">Adicionar posto</strong>
+            <p class="muted">Campos vazios podem ser completados depois; o registro fica preservado no historico.</p>
+          </div>
+          <span id="saveStatus" class="status-chip">Carregando...</span>
+        </div>
+        <form id="placeForm" class="place-form">
+          <input id="placeId" type="hidden" />
+          <label>Nome do posto
+            <input id="placeName" type="text" autocomplete="off" required />
+          </label>
+          <label>Cidade
+            <input id="placeCity" type="text" autocomplete="off" required />
+          </label>
+          <label>CEP
+            <input id="placeCep" type="text" inputmode="numeric" autocomplete="off" placeholder="00000-000" />
+          </label>
+          <label>Nome de referencia
+            <input id="placeReferenceName" type="text" autocomplete="off" placeholder="Cliente, unidade ou nome usado na escala" />
+          </label>
+          <fieldset class="field-wide work-kind-field">
+            <legend>Tipo de trabalho</legend>
+            <p class="muted">Marque todos os tipos aplicaveis ao posto.</p>
+            <div class="checkbox-grid">
+              <label class="check-pill"><input type="checkbox" name="workKind" value="monitoramento" /> Monitoramento</label>
+              <label class="check-pill"><input type="checkbox" name="workKind" value="alarmes" /> Alarmes</label>
+              <label class="check-pill"><input type="checkbox" name="workKind" value="ronda" /> Ronda</label>
+              <label class="check-pill"><input type="checkbox" name="workKind" value="efetivo" /> Efetivo</label>
+            </div>
+          </fieldset>
+          <label class="field-wide">Endereco ou localizacao
+            <input id="placeAddress" type="text" autocomplete="off" />
+          </label>
+          <label class="field-wide">Observacoes
+            <textarea id="placeNotes" rows="3" placeholder="Detalhes de acesso, complemento, origem da informacao..."></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="savePlaceBtn" class="button" type="submit">Salvar posto</button>
+            <button id="cancelEditBtn" class="button secondary" type="button">Cancelar edicao</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel list-panel">
+        <div class="panel-head list-head">
+          <div>
+            <strong>Informativo de postos</strong>
+            <p class="muted">Filtre por texto, cidade, tipo de trabalho, status e presenca de CEP.</p>
+          </div>
+          <span id="countLabel" class="muted">Carregando...</span>
+        </div>
+        <div class="filters-grid" aria-label="Filtros dos postos">
+          <label>Buscar
+            <input id="searchInput" type="search" placeholder="Posto, cidade, CEP, endereco..." />
+          </label>
+          <label>Cidade
+            <select id="cityFilter">
+              <option value="">Todas as cidades</option>
+            </select>
+          </label>
+          <label>Tipo
+            <select id="workKindFilter">
+              <option value="all">Todos os tipos</option>
+              <option value="monitoramento">Monitoramento</option>
+              <option value="alarmes">Alarmes</option>
+              <option value="ronda">Ronda</option>
+              <option value="efetivo">Efetivo</option>
+              <option value="none">Sem tipo informado</option>
+            </select>
+          </label>
+          <label>Status
+            <select id="statusFilter">
+              <option value="active">Ativos</option>
+              <option value="archived">Arquivados</option>
+              <option value="all">Todos</option>
+            </select>
+          </label>
+          <label>CEP
+            <select id="cepFilter">
+              <option value="all">Todos</option>
+              <option value="with">Com CEP</option>
+              <option value="without">Sem CEP</option>
+            </select>
+          </label>
+        </div>
+        <div id="placeList" class="place-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/monitoramento/clientes/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/seed-data.js"))
+      .then(() => window.tkaLoadLocalScript("/monitoramento/postos/app.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

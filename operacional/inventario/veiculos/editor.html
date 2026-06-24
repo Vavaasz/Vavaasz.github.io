@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Termo Veiculos - Inventario Operacional</title>
+  <script>
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      const ASSET_BUST_FALLBACK = "20260622-veiculos-termo-frota";
+      window.tkaResolveAssetUrl = function (path) {
+        const refreshToken = new URLSearchParams(window.location.search).get("__tka_refresh__");
+        if (refreshToken) localStorage.setItem(ASSET_BUST_KEY, refreshToken);
+        const token = refreshToken || localStorage.getItem(ASSET_BUST_KEY) || ASSET_BUST_FALLBACK;
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) url.searchParams.set("v", token);
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadStylesheet = function (path) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = window.tkaResolveAssetUrl(path);
+        document.head.appendChild(link);
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+      window.tkaLoadStylesheet("/operacional/inventario/veiculos/styles.css");
+      window.tkaLoadStylesheet("/shared/tka-theme.css");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Operacional / Inventario / Veiculos</p>
+      <h1 id="pageTitle">Termo de Responsabilidade</h1>
+      <p id="pageSubtitle" class="muted">Termo digital de uso de veiculos da frota.</p>
+    </div>
+    <div class="topbar-side">
+      <a id="backToListLink" class="button secondary" href="/operacional/inventario/veiculos/">Voltar</a>
+      <a id="homeLink" class="button secondary" href="/?tab=systems">Home</a>
+      <button id="themeToggleBtn" class="button secondary" type="button">Tema escuro</button>
+      <button id="copyPublicLinkBtn" class="button secondary" type="button">Copiar link</button>
+      <button id="printBtn" class="button secondary" type="button">Imprimir</button>
+      <button id="exportPdfBtn" class="button secondary" type="button">Exportar PDF</button>
+      <button id="saveBtn" class="button" type="button">Enviar</button>
+    </div>
+  </header>
+
+  <main class="shell editor-shell">
+    <section class="preview-panel">
+      <div id="termPreview"></div>
+    </section>
+
+    <aside class="editor-side">
+      <section id="adminFieldsPanel" class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="fieldsPanelTitle">Dados do termo</h2>
+            <p id="fieldsPanelSubtitle" class="muted">Campos usados para montar o termo e o PDF.</p>
+          </div>
+        </div>
+        <div id="missingInfoPanel" class="missing-info hidden" role="alert" aria-live="polite">
+          <strong>Falta preencher:</strong>
+          <ul id="missingInfoList"></ul>
+        </div>
+        <form class="form-grid">
+          <label data-public-field>Nome completo<input data-field="employeeName" autocomplete="name" required /></label>
+          <label data-public-field>CPF<input data-field="employeeDocument" autocomplete="off" required /></label>
+          <label data-internal-field>Matricula interna<input data-field="employeeInternalId" /></label>
+          <label data-public-field>Cargo / funcao<input data-field="employeeRole" required /></label>
+          <label data-internal-field>Departamento<input data-field="employeeDepartment" /></label>
+          <label data-public-field>Posto de uso<input data-field="employeeUsagePost" required /></label>
+          <label data-public-field>Turno de trabalho<input data-field="employeeWorkShift" required /></label>
+          <label data-public-field>Empresa<input data-field="companyName" required /></label>
+          <label data-internal-field>Marca<input data-field="deviceBrand" required /></label>
+          <label data-internal-field>Modelo<input data-field="deviceModel" required /></label>
+          <label data-internal-field>Placa<input data-field="assetTag" required /></label>
+          <label data-internal-field>Prefixo / frota<input data-field="serialNumber" required /></label>
+          <label data-internal-field>Renavam / chassi<input data-field="internalId" /></label>
+          <label data-public-field>Data do termo<input data-field="deliveryDate" type="date" required /></label>
+          <label data-internal-field>Condicao do veiculo<input data-field="deviceCondition" required /></label>
+          <label data-public-field>Responsavel pela autorizacao<input data-field="responsibleForDeliveryName" required /></label>
+          <label class="field-wide" data-internal-field>Itens/documentos vinculados<textarea data-field="accessoriesDelivered"></textarea></label>
+          <label class="field-wide" data-internal-field>Observacoes do veiculo<textarea data-field="conditionNotes"></textarea></label>
+        </form>
+      </section>
+
+      <section id="manualAccessPanel" class="panel manual-access-panel">
+        <div class="panel-head">
+          <div>
+            <strong>Termo original da frota</strong>
+            <p id="manualAccessText" class="muted">PDF do termo original publicado no sistema.</p>
+          </div>
+          <div class="manual-link-group">
+            <a id="openManualLink" class="button secondary" target="_blank" rel="noreferrer">Abrir PDF</a>
+            <a id="downloadManualLink" class="button secondary" download="termo-responsabilidade-veiculos-frota.pdf">Baixar PDF</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <strong>Confirmacoes obrigatorias</strong>
+          <span id="statusChip" class="chip" data-status="incomplete">Incompleto</span>
+        </div>
+        <div class="checklist">
+          <label><input id="ackEquipmentReceived" type="checkbox" /> <span>Confirmo que estou autorizado a utilizar veiculos da frota da empresa.</span></label>
+          <label><input id="ackPolicyRead" type="checkbox" /> <span>Confirmo que li as normas de zelo, transito, danos, checklist, combustivel e KM.</span></label>
+        </div>
+        <p id="issueSummary" class="muted">Pendencias serao exibidas aqui.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <strong>Assinatura do colaborador</strong>
+          <button id="clearSignatureBtn" class="secondary" type="button">Limpar</button>
+        </div>
+        <div class="signature-preview">
+          <img id="signaturePreview" class="hidden" alt="Assinatura do colaborador" />
+          <span id="signatureEmpty" class="muted">Assinatura pendente.</span>
+        </div>
+        <div class="form-grid signature-bottom-fields">
+          <label>Cidade<input data-field="signatureCity" required /></label>
+          <label>Dia e hora<input data-field="signatureDateTime" type="datetime-local" required /></label>
+        </div>
+        <canvas id="signatureCanvas" class="signature-canvas"></canvas>
+        <p id="saveStatus" class="muted">Aguardando carregamento.</p>
+      </section>
+
+      <section id="companySignaturePanel" class="panel">
+        <div class="panel-head">
+          <strong>Assinatura do Diretor</strong>
+          <span id="companySignatureMeta" class="muted">Carregando assinatura do Admin.</span>
+        </div>
+        <div class="signature-preview">
+          <img id="companySignaturePreview" class="hidden" alt="Assinatura do Diretor" />
+          <span id="companySignatureEmpty" class="muted">Assinatura do Diretor pendente no Admin.</span>
+        </div>
+      </section>
+
+      <section class="panel operational-signature-panel">
+        <div class="panel-head">
+          <strong>Coordenacao Operacional</strong>
+          <div class="signature-actions">
+            <button id="saveCoordinationSignatureBtn" class="secondary" type="button">Salvar</button>
+            <button id="clearCoordinationSignatureBtn" class="secondary" type="button">Limpar</button>
+          </div>
+        </div>
+        <label>Nome de quem assina<input data-field="coordinationSignerName" /></label>
+        <div class="signature-preview">
+          <img id="coordinationSignaturePreview" class="hidden" alt="Assinatura da Coordenacao Operacional" />
+          <span id="coordinationSignatureEmpty" class="muted">Assinatura pendente.</span>
+        </div>
+        <canvas id="coordinationSignatureCanvas" class="signature-canvas"></canvas>
+      </section>
+
+      <section class="panel operational-signature-panel">
+        <div class="panel-head">
+          <strong>Lideranca Operacional</strong>
+          <div class="signature-actions">
+            <button id="saveLeadershipSignatureBtn" class="secondary" type="button">Salvar</button>
+            <button id="clearLeadershipSignatureBtn" class="secondary" type="button">Limpar</button>
+          </div>
+        </div>
+        <label>Nome de quem assina<input data-field="leadershipSignerName" /></label>
+        <div class="signature-preview">
+          <img id="leadershipSignaturePreview" class="hidden" alt="Assinatura da Lideranca Operacional" />
+          <span id="leadershipSignatureEmpty" class="muted">Assinatura pendente.</span>
+        </div>
+        <canvas id="leadershipSignatureCanvas" class="signature-canvas"></canvas>
+      </section>
+    </aside>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/signature-tools.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/operacional/inventario/veiculos/template.js"))
+      .then(() => window.tkaLoadLocalScript("/operacional/inventario/veiculos/pdf.js"))
+      .then(() => window.tkaLoadLocalScript("/operacional/inventario/veiculos/editor.js"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>

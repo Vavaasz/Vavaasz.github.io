@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WhatsApp RH | TKA</title>
+  <link rel="stylesheet" href="/whatsappRH/styles.css">
+  <link rel="stylesheet" href="/shared/tka-theme.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">TKA Recursos Humanos</p>
+      <h1>WhatsApp RH IA Teacher</h1>
+      <p id="pageMeta" class="muted">Atualizando...</p>
+    </div>
+    <nav class="top-actions">
+      <a href="/whatsappRH-test/">WhatsApp Test</a>
+      <a href="/recursos-humanos/">Central RH</a>
+      <a href="/recursos-humanos/">Upload Fichas</a>
+      <a href="http://127.0.0.1:18992/rh/status" target="_blank" rel="noreferrer">Bridge RH</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="connectionPanel" class="status-grid"></section>
+
+    <section class="panel manual-info-panel">
+      <div class="section-title">
+        <div>
+          <h2>Informacoes rapidas do RH</h2>
+          <p class="muted">Use quando houver uma regra do dia, data de pagamento, Gym Pass/Wellhub, beneficio ou outra orientacao que deve aparecer nas respostas.</p>
+        </div>
+        <button type="button" id="manualInfoToggle" class="response-button">Adicione mais informacoes</button>
+      </div>
+      <div id="manualInfoBox" class="manual-info-box" hidden>
+        <label class="field-label" for="manualInfoTopic">Assunto</label>
+        <select id="manualInfoTopic">
+          <option value="general">Geral RH</option>
+          <option value="payment">Pagamento / desconto</option>
+          <option value="benefits">VR / VA / VT / cartao</option>
+          <option value="gympass">Gym Pass / Wellhub</option>
+          <option value="payslip">Holerite</option>
+          <option value="schedule">Escala / folga / FT</option>
+          <option value="vacation">Ferias</option>
+          <option value="documents">Documentos</option>
+          <option value="uniform">Uniforme / equipamento</option>
+        </select>
+        <label class="field-label" for="manualInfoText">Informacao para o agente usar</label>
+        <textarea id="manualInfoText" rows="5" maxlength="1400" placeholder="Ex.: Pagamento de junho sera conferido em 20/06. Gym Pass/Wellhub: pedir nome e CPF e o RH valida cadastro."></textarea>
+        <div class="manual-info-actions">
+          <button type="button" id="manualInfoSave" class="response-button">Salvar informacao</button>
+          <span id="manualInfoStatus" class="item-meta"></span>
+        </div>
+        <div class="manual-info-help">
+          <strong>Como o RH deve usar:</strong>
+          <span>1. Toque em Adicione mais informacoes.</span>
+          <span>2. Escolha o assunto.</span>
+          <span>3. Escreva uma regra curta com exemplo real.</span>
+          <span>4. Toque em Salvar informacao. O agente passa a mostrar essa orientacao nos rascunhos.</span>
+        </div>
+      </div>
+      <div id="manualInfoList" class="manual-info-list"></div>
+    </section>
+
+    <section class="work-grid">
+      <article class="panel queue-panel">
+        <div class="section-title">
+          <div>
+            <h2>Fila RH</h2>
+            <p class="muted">Mensagens que precisam de acao, conferencia de escala ou resposta.</p>
+          </div>
+          <span id="queueCount" class="pill">0</span>
+        </div>
+        <div id="attentionList" class="stack-list"></div>
+      </article>
+
+      <aside class="panel">
+        <h2>Padroes de resposta</h2>
+        <div id="answerPatterns" class="answer-list"></div>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <h2>Conferencia com Dashboard</h2>
+          <p class="muted">Comparacao do que chegou no WhatsApp com pessoas, postos, horarios e FT ja cadastrados.</p>
+        </div>
+        <span id="dashboardDay" class="pill">Hoje</span>
+      </div>
+      <div id="dashboardMatches" class="match-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <h2>Mensagens recentes</h2>
+          <p class="muted">Leitura continua da publicacao live do WhatsApp RH.</p>
+        </div>
+      </div>
+      <div id="recentMessages" class="message-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Pessoas e assuntos aprendidos</h2>
+      <div id="peoplePatterns" class="people-grid"></div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    window.TKA_HIDE_MAINTENANCE_TOOLS = true;
+    (function () {
+      const ASSET_BUST_KEY = "tka_asset_bust_token";
+      window.tkaResolveAssetUrl = function (path) {
+        const token = localStorage.getItem(ASSET_BUST_KEY) || "";
+        const url = new URL(path, window.location.origin);
+        if (token && url.origin === window.location.origin) url.searchParams.set("v", token);
+        return `${url.pathname}${url.search}`;
+      };
+      window.tkaLoadLocalScript = function (path, target) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = window.tkaResolveAssetUrl(path);
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Falha ao carregar ${path}`));
+          (target || document.body).appendChild(script);
+        });
+      };
+    })();
+    Promise.resolve()
+      .then(() => window.tkaLoadLocalScript("/shared/portal-tools.js?wv=whatsapp-live-20260617"))
+      .then(() => window.tkaLoadLocalScript("/shared/tka-theme.js"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/firebase-runtime-config.js"))
+      .then(() => window.tkaLoadLocalScript("/shared/firestore-read-guard.js?v=20260623-quota-guard"))
+      .then(() => window.tkaLoadLocalScript("/recursos-humanos/seed-data.js"))
+      .then(() => window.tkaLoadLocalScript("/whatsappRH/app.js?v=rh-learning-buttons-20260622"))
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>
